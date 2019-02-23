@@ -1,8 +1,13 @@
+# import from keras to load model from json file
 from keras.models import model_from_json
+
+# import ScikitLearn functions for standardization, feature selection, and data split
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
+
+# importing pandas, numpy, and csv
 import pandas as pd
 import numpy as np
 import csv
@@ -43,11 +48,12 @@ test_data = sc.fit_transform(selected_features)
 # generate output array from model predictions
 predictions = loaded_model.predict(test_data)
 print("Mean: " + str(predictions.mean()))
-print("Median: "+ str(np.median(predictions)))
+print("Median: " + str(np.median(predictions)))
 
 # read output file name in from terminal
 submission_name = input("What would you like to call the output file?")
 
+# print to submission csv
 with open('./predictions/submission_' + submission_name + '.csv', mode='w') as submission_file:
     submission_writer = csv.writer(submission_file, delimiter=',', )
     submission_writer.writerow(["ID","PAID_NEXT_MONTH"])
