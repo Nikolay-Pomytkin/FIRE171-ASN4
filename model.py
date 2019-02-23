@@ -23,7 +23,6 @@ train_labels = train_data.pop('PAID_NEXT_MONTH')
 train_stats = train_data.describe().transpose()
 normed_train_data = (train_data - train_stats['min']) / (train_stats['max'] - train_stats['min'])
 
-
 # feature - selection -> univariate selection 
 feature_select = SelectKBest(score_func=chi2, k=14)
 fit = feature_select.fit(normed_train_data, train_labels)
