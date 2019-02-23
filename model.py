@@ -5,7 +5,7 @@ import keras as K
 from keras import losses
 from keras import optimizers
 from keras import utils
-from keras.regularizers import l1, l2
+from keras import metrics
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
@@ -32,16 +32,18 @@ selected_features = fit.transform(train_data)
 #standardize data
 sc = StandardScaler()
 train_data = sc.fit_transform(selected_features)
-train_data_split, test_data_split, train_labels_split, test_labels_split = train_test_split(train_data, train_labels, test_size=0.2)
+train_data_split, test_data_split, train_labels_split, test_labels_split = train_test_split(train_data, train_labels, test_size=0.3)
+
+# After splitting data, account for class skew
+
+
 
 def create_model():
     # create model
     model = Sequential()
-    model.add(Dense(14, input_dim=14, kernel_initializer='random_normal', activation='tanh'))
+    model.add(Dense(42, input_dim=14, activation='tanh', kernel_initializer='random_normal'))
     model.add(Dropout(0.25))
-    model.add(Dense(6, kernel_initializer='random_normal', activation='tanh'))
-    model.add(Dropout(0.25))
-    model.add(Dense(1, kernel_initializer='random_normal', activation='sigmoid'))
+    model.add(Dense(1, activation='sigmoid', kernel_initializer='random_normal'))
 
     # Compile model. We use the the logarithmic loss function, and the Adam gradient optimizer.
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
@@ -51,7 +53,7 @@ def create_model():
 model = create_model()
 
 # save model to history variable for visualization
-history = model.fit(train_data_split, train_labels_split, epochs=35, validation_split=0.2)
+history = model.fit(train_data_split, train_labels_split, epochs=500, validation_split=0.2, batch_size=80)
 
 # plot training + test accuracy history
 plt.plot(history.history['acc'])
