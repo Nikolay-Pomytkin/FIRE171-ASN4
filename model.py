@@ -42,21 +42,23 @@ def feature_selection(NUM_FEATURES):
 
     #standardize data
     sc = StandardScaler()
-    train_data = sc.fit_transform(selected_features)
-    train_data_split, test_data_split, train_labels_split, test_labels_split = train_test_split(train_data, train_labels, test_size=0.25)
-
+    training_data = sc.fit_transform(selected_features)
+    return train_test_split(training_data, train_labels, test_size=0.25)
 
 
 # After splitting data, account for class skew
 
 
 
-def create_model():
+def create_model(layers):
     # create model
     model = Sequential()
-    model.add(Dense(42, input_dim=18, activation='tanh', kernel_initializer='random_normal'))
-    model.add(Dropout(0.25))
-    model.add(Dense(1, activation='sigmoid', kernel_initializer='random_normal'))
+    # model.add(Dense(42, input_dim=18, activation='tanh', kernel_initializer='random_normal'))
+    # model.add(Dropout(0.25))
+    # model.add(Dense(1, activation='sigmoid', kernel_initializer='random_normal'))
+
+    for l in layers:
+        model.add(l)
 
     # Compile model. We use the the logarithmic loss function, and the Adam gradient optimizer.
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
@@ -67,17 +69,19 @@ def create_model():
 
 # when function is called, prompts user on what variables to use for creating a new layer and returns that layer 
 def create_layer(FEATURES):
-    TYPE = input("What type of layer (Dense or Dropout)?")
+    print("---------- Creating Layer ----------")
+    TYPE = input("What type of layer (Dense or Dropout)? ")
     if(TYPE == "Dropout"):
-        drp_prct = input("What percentage dropout?")
-        return Dropout(int(drp_prct))
+        drp_prct = input("What percentage dropout? ")
+        return Dropout(float(drp_prct))
     else:
-        ACT_FUNC = input("What is the activation function you would like to use?")
+        ACT_FUNC = input("What is the activation function you would like to use? ")
         NEURON_NUM = input("How many neurons does your layer have? ")
-        TYPE2 = input("What type of layer is this (Input or no)? ")
-        if(TYPE2 == "Input"):
-            
-            return DENSE(int(NEURON_NUM), input_dim=)
+        TYPE2 = input("What type of layer is this (1 for input)? ")
+        if(TYPE2 == "1"):
+            return Dense(int(NEURON_NUM), input_dim=FEATURES, activation=ACT_FUNC, kernel_initializer='random_normal')
+        else:
+            return Dense(int(NEURON_NUM), activation=ACT_FUNC, kernel_initializer='random_normal')
 
 
 
@@ -89,19 +93,23 @@ while(running):
     print("Starting new model training")
     print("---------------------------")
     
-    EPOCHS = input("How many epochs would you like to train the model for? ")
-    BATCH_NUMBER = input("How many batches would you like to use? ")
-    FEATURES = input("How many features would you like to train your model on? ")
-    LAYERS = input("How many layers would you like your model to have? ")
+    EPOCHS = int(input("How many epochs would you like to train the model for? "))
+    BATCH_NUMBER = int(input("How many batches would you like to use? "))
+    FEATURES = int(input("How many features would you like to train your model on? "))
+    LAYERS = int(input("How many layers would you like your model to have? "))
     
-    layers = []
-    for i in range(0, LAYERS):
-        layers[i] = create_layer(FEATURES)
+    train_data_split, test_data_split, train_labels_split, test_labels_split = feature_selection(FEATURES)
 
-    model = create_model()
+    layers = []
+    i = 0
+    while i < LAYERS:
+        layers.append(create_layer(FEATURES))
+        i += 1
+
+    model = create_model(layers)
 
     # save model to history variable for visualization
-    history = model.fit(train_data_split, train_labels_split, epochs=200, validation_split=0.2, batch_size=90)
+    history = model.fit(train_data_split, train_labels_split, epochs=EPOCHS, validation_split=0.2, batch_size=BATCH_NUMBER)
 
     # plot training + test accuracy history
     plt.plot(history.history['acc'])
@@ -120,11 +128,10 @@ while(running):
     save = int(input())
 
     if(save == 1):
-        mod_name = input("enter model name:")
+        mod_name = input("Enter model name:")
         model_json = model.to_json()
         with open("./models/model_" + mod_name +".json", "w") as json_file:
             json_file.write(model_json)
         # serialize weights to HDF5
         model.save_weights("./models/model_" + mod_name + ".h5")
         print("Saved model to disk")
-
