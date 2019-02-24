@@ -47,15 +47,47 @@ def feature_selection(NUM_FEATURES):
 
 
 # After splitting data, account for class skew
+def deskew_classes(data, labels):
+    # input_data and input_labels are numpy arrays
+    input_data = data
+    input_labels = labels
+    input_size = len(data)
+
+    indexes = [i for i, x in enumerate(input_labels) if x == 0]
+    zero_class_size = len(indexes)
+    copied_data = [input_data[x] for x in indexes]
+    zero_labels = [0 for x in indexes]
+
+    add_data = np.ndarray(copied_data.copy())
+    add_labels = np.ndarray(zero_labels.copy())
+
+    num_copies = 0
+    while (zero_class_size/input_size) < 0.4:
+        num_copies += 1
+        add_data += copied_data
+        add_labels += zero_labels
+        zero_class_size += len(indexes)
+
+    new_data = []
+    input_data[0] = np.concatenate(input_data[0], add_data[0], axis=None)
+    input_data[1] = np.concatenate(input_data[1], add_data[1], axis=None)
+    new_data.append(input_data[0])
+    new_data.append(input_data[1])
+    new_labels = np.concatenate(input_labels, add_labels, axis=None)
+
+    print("--------- De-skewed data ---------")
+    print("New data info:")
+    print("Total one class size: " + str(input_size - len(indexes)))
+    print("Total zero class size: " + str(zero_class_size))
+    print("Total zero class percentage: " + str(zero_class_size/(input_size - len(indexes))))
+
+    return new_data, new_labels
 
 
 
 def create_model(layers):
     # create model
     model = Sequential()
-    # model.add(Dense(42, input_dim=18, activation='tanh', kernel_initializer='random_normal'))
-    # model.add(Dropout(0.25))
-    # model.add(Dense(1, activation='sigmoid', kernel_initializer='random_normal'))
 
     for l in layers:
         model.add(l)
@@ -99,6 +131,10 @@ while(running):
     LAYERS = int(input("How many layers would you like your model to have? "))
     
     train_data_split, test_data_split, train_labels_split, test_labels_split = feature_selection(FEATURES)
+
+    SKEW_BOOL = int(input("Would you like to account for class skew? (1 or 0) "))
+    if SKEW_BOOL == 1:
+        train_data_split, train_labels_split = deskew_classes(train_data_split, train_labels_split)
 
     layers = []
     i = 0
