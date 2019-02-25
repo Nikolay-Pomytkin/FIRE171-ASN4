@@ -43,7 +43,8 @@ def feature_selection(NUM_FEATURES):
     #standardize data
     sc = StandardScaler()
     training_data = sc.fit_transform(selected_features)
-    return train_test_split(training_data, train_labels, test_size=0.25)
+
+    return train_test_split(training_data, train_labels, test_size=0.2, random_state=42)
 
 
 # After splitting data, account for class skew
@@ -56,30 +57,35 @@ def deskew_classes(data, labels):
     indexes = [i for i, x in enumerate(input_labels) if x == 0]
     zero_class_size = len(indexes)
     copied_data = [input_data[x] for x in indexes]
+    # copied_data = np.ndarray(copied_data)
     zero_labels = [0 for x in indexes]
-
-    add_data = np.ndarray(copied_data.copy())
-    add_labels = np.ndarray(zero_labels.copy())
+    # zero_labels = np.ndarray(zero_labels)
+    import copy
+    add_data = copy.deepcopy(copied_data)
+    merge_data = copy.deepcopy(add_data)
+    add_labels = zero_labels.copy()
 
     num_copies = 0
-    while (zero_class_size/input_size) < 0.4:
+    while (zero_class_size/input_size) < 0.13:
         num_copies += 1
-        add_data += copied_data
-        add_labels += zero_labels
         zero_class_size += len(indexes)
 
-    new_data = []
-    input_data[0] = np.concatenate(input_data[0], add_data[0], axis=None)
-    input_data[1] = np.concatenate(input_data[1], add_data[1], axis=None)
-    new_data.append(input_data[0])
-    new_data.append(input_data[1])
-    new_labels = np.concatenate(input_labels, add_labels, axis=None)
+    add_labels = np.tile(add_labels, num_copies+1)
+
+    new_labels = np.concatenate((input_labels, add_labels), axis=None)
+    new_data = np.concatenate((input_data, add_data), axis=0)
+
+    print_add_size = add_labels.shape[0]
+    print_total_size = new_labels.shape[0]
+
+
+    # NEED TO FIX DESKEWER
 
     print("--------- De-skewed data ---------")
     print("New data info:")
-    print("Total one class size: " + str(input_size - len(indexes)))
-    print("Total zero class size: " + str(zero_class_size))
-    print("Total zero class percentage: " + str(zero_class_size/(input_size - len(indexes))))
+    print("Total one class size: " + str(print_total_size - print_add_size - len(indexes)))
+    print("Total zero class size: " + str(len(indexes)+print_add_size))
+    print("Total zero class percentage: " + str((print_add_size + len(indexes))/print_total_size))
 
     return new_data, new_labels
 
@@ -136,6 +142,9 @@ while(running):
     if SKEW_BOOL == 1:
         train_data_split, train_labels_split = deskew_classes(train_data_split, train_labels_split)
 
+    from sklearn.utils import shuffle
+    train_data_split, train_labels_split = shuffle(train_data_split, train_labels_split)
+
     layers = []
     i = 0
     while i < LAYERS:
@@ -152,6 +161,14 @@ while(running):
     plt.plot(history.history['val_acc'])
     plt.title('Model accuracy')
     plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.show()
+
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('Model loss')
+    plt.ylabel('Loss')
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
     plt.show()
