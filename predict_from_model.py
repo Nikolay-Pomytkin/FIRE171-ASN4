@@ -36,7 +36,7 @@ train_stats = train_data.describe().transpose()
 normed_test_data = (test_data - test_stats['min']) / (test_stats['max'] - test_stats['min'])
 normed_train_data = (train_data - train_stats['min']) / (test_stats['max'] - test_stats['min'])
 
-# feature - selection -> univariate selection (based on train data) 
+# feature - selection -> univariate selection (based on train data)
 feature_select = SelectKBest(score_func=chi2, k=loaded_model.get_layer(name='dense_1').get_config()['batch_input_shape'][1])
 fit = feature_select.fit(normed_train_data, train_labels)
 selected_features = fit.transform(test_data)
