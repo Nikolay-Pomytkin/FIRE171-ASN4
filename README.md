@@ -5,13 +5,15 @@
 
 Folders:
 
-**Data**
-- Folder containing all provided data
+**Data:** Folder containing all provided data
 - [Descriptions of Labels](data/data-description.csv)
 - [Training data](data/train.csv)
 - [Sample Submission](data/sample-submission.csv)
 - [Test data](data/test.csv)
 
-**Models**
+**Models:** Folder containing all saved models
+- .h5 files store the weights of the model
+- .json files store model architecture
 
-**Predictions**
+**Predictions:** Folder containing csv's with predictions
+- files are named based on test accuracy percentages and/or network architecture
