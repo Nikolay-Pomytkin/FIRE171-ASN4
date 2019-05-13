@@ -3,7 +3,11 @@
 - Used deep learning techniques to predict if an individual is going to pay their bank balance next month.
 - Created multi-layer neural network.
 
-Folders:
+The script written for training the model is stored in model.py. 
+Running model.py from the command line allows you to input properties of the model, and then chose whether or not to store the weights and architecture of the model created (.h5 and .json files).
+After training the model, predictions can be made from the stored files through the predict_from_model.py file, which should be run from the command line.
+
+#### Folders:
 
 **Data:** Folder containing all provided data
 - [Descriptions of Labels](data/data-description.csv)
